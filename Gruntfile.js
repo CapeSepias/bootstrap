@@ -499,12 +499,19 @@ module.exports = function (grunt) {
   // Task for updating the cached npm packages used by the Travis build (which are controlled by grunt/npm-shrinkwrap.json).
   // This task should be run and the updated file should be committed whenever Bootstrap's dependencies change.
   grunt.registerTask('update-shrinkwrap', function () {
-    grunt.task.run('exec:npmUpdate', 'exec:npmShrinkwrap');
+    var done = this.async();
     var dest = 'grunt/npm-shrinkwrap.json';
-    if (grunt.file.exists('./npm-shrinkwrap.json')) {
-      sh.mv('-f', './npm-shrinkwrap.json', dest);
+
+    grunt.task.run('exec:npmUpdate', 'exec:npmShrinkwrap');
+
+    fs.rename('npm-shrinkwrap.json', dest, function(err) {
+      if (err) {
+        grunt.fail.fatal(err);
+        done(false);
+      }
       grunt.log.writeln('File ' + dest.cyan + ' updated.');
-    }
+      done();
+    });
   });
 
 };
